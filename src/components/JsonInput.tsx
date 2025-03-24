@@ -46,20 +46,24 @@ const JsonInput: React.FC<JsonInputProps> = ({
       </div>
 
       <div className="flex-grow relative">
-        <ScrollArea className="h-full">
-          <textarea
-            value={value}
-            onChange={handleChange}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-            spellCheck={false}
-            className="w-full h-full bg-[#282c34] text-white font-mono text-sm p-4 resize-none outline-none border-0"
-            style={{ 
-              minHeight: "100%",
-              lineHeight: 1.5,
-              tabSize: 2,
-            }}
-          />
+        <ScrollArea orientation="both" className="h-full">
+          <div className="min-w-max">
+            <textarea
+              value={value}
+              onChange={handleChange}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
+              spellCheck={false}
+              className="w-full h-full bg-[#282c34] text-white font-mono text-sm p-4 resize-none outline-none border-0"
+              style={{ 
+                minHeight: "100%",
+                lineHeight: 1.5,
+                tabSize: 2,
+                minWidth: "800px", // Set a minimum width to prevent content truncation
+                overflow: "visible",
+              }}
+            />
+          </div>
         </ScrollArea>
       </div>
 

@@ -47,8 +47,8 @@ const JsonataResult: React.FC<JsonataResultProps> = ({ result }) => {
         </button>
       </div>
 
-      <ScrollArea className="h-[150px]">
-        <div className="bg-[#282c34] p-4 h-full">
+      <ScrollArea orientation="both" className="h-[150px]">
+        <div className="bg-[#282c34] p-4 h-full min-w-max">
           {result ? (
             <pre className={`font-mono text-sm ${isSimpleValue() ? 'text-amber-400' : 'text-white'}`}>
               {result}
