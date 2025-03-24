@@ -6,6 +6,8 @@ import HowItWorksModal from "../components/HowItWorksModal";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "../components/ui/resizable";
 import { toast } from "sonner";
 import { JsonataEditorHandle } from "../components/JsonataEditor";
+import { Github } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const Index = () => {
   const [jsonInput, setJsonInput] = useState<string>(`{
@@ -119,7 +121,16 @@ const Index = () => {
         <div className="flex items-center">
           <span className="text-[#7cb342] text-xl font-semibold ml-2">JSONata Genius</span>
         </div>
-        <div className="flex items-center">
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-gray-300 hover:text-white"
+            title="View on GitHub"
+            onClick={() => window.open("https://github.com/emilefyon/jsonata-genius", "_blank")}
+          >
+            <Github className="h-5 w-5" />
+          </Button>
           <HowItWorksModal className="text-gray-300 hover:text-white" />
         </div>
       </header>

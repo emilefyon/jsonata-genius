@@ -2,11 +2,15 @@
 
 A powerful web application for transforming and querying JSON data using JSONata expressions, with AI-powered assistance.
 
-![JSONata Genius App](https://i.imgur.com/placeholder-for-screenshot.png)
+![JSONata Genius App](https://cdn.e1000.me/jsonata-genius.png)
 
 ## Overview
 
 JSONata Genius is an intuitive tool that helps you work with JSON data using [JSONata](https://jsonata.org/) expressions. It combines a clean interface with AI-powered generation of JSONata expressions, making it easy to extract, transform, and analyze your JSON data without having to be a JSONata expert.
+
+## Live Demo
+
+Try it now: [https://jsonata-genius.up.railway.app/](https://jsonata-genius.up.railway.app/)
 
 ## Features
 
@@ -29,7 +33,7 @@ JSONata Genius is an intuitive tool that helps you work with JSON data using [JS
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/jsonata-genius.git
+   git clone https://github.com/emilefyon/jsonata-genius.git
    cd jsonata-genius
    ```
 
