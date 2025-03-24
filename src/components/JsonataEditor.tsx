@@ -42,6 +42,20 @@ const JsonataEditor: React.FC<JsonataEditorProps> = ({
     }
   };
 
+  // Extract clean JSONata expression from API response (removing markdown backticks)
+  const extractCleanExpression = (text: string): string => {
+    // Remove markdown code blocks (```jsonata and ```)
+    const codeBlockRegex = /```(?:jsonata)?\s*([\s\S]*?)```/;
+    const match = text.match(codeBlockRegex);
+    
+    if (match && match[1]) {
+      return match[1].trim();
+    }
+    
+    // If no code block markers, just return the text (trimmed)
+    return text.trim();
+  };
+
   // Generate JSONata expression using the prompt via OpenAI API
   const generateExpression = async () => {
     if (!prompt.trim()) {
@@ -83,7 +97,7 @@ const JsonataEditor: React.FC<JsonataEditorProps> = ({
           messages: [
             {
               role: "system",
-              content: "You are a JSONata expert. Given a JSON object and a description of what the user wants to extract or transform, provide only a valid JSONata expression that accomplishes this task. Do not include any explanations, just return the JSONata expression."
+              content: "You are a JSONata expert. Given a JSON object and a description of what the user wants to extract or transform, provide only a valid JSONata expression that accomplishes this task. Do not include any explanations, do not format as a code block, just return the raw JSONata expression."
             },
             {
               role: "user",
@@ -100,12 +114,13 @@ const JsonataEditor: React.FC<JsonataEditorProps> = ({
       }
 
       const data = await response.json();
-      const expression = data.choices[0].message.content.trim();
+      const rawExpression = data.choices[0].message.content.trim();
+      const cleanExpression = extractCleanExpression(rawExpression);
       
-      setJsonataExpression(expression);
+      setJsonataExpression(cleanExpression);
       
       // Also evaluate the expression
-      await evaluateExpression(expression);
+      await evaluateExpression(cleanExpression);
     } catch (err) {
       console.error("Error generating expression:", err);
       setError(`Failed to generate expression: ${(err as Error).message}`);
@@ -161,6 +176,14 @@ const JsonataEditor: React.FC<JsonataEditorProps> = ({
     setTimeout(() => {
       setCopied(false);
     }, 2000);
+  };
+
+  // Allow users to clear their saved API key
+  const clearApiKey = () => {
+    localStorage.removeItem('openai_api_key');
+    setApiKeyInput("");
+    toast.success("API key removed");
+    setShowApiKeyInput(true);
   };
 
   return (
@@ -240,6 +263,16 @@ const JsonataEditor: React.FC<JsonataEditorProps> = ({
               )}
             </button>
           </div>
+          {localStorage.getItem('openai_api_key') && (
+            <div className="flex justify-end mt-1">
+              <button 
+                onClick={clearApiKey} 
+                className="text-xs text-gray-400 hover:text-gray-300"
+              >
+                Clear API key
+              </button>
+            </div>
+          )}
         </div>
       )}
       
