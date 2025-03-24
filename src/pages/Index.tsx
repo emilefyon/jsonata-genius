@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import JsonInput from "../components/JsonInput";
 import JsonataEditor from "../components/JsonataEditor";
 import JsonataResult from "../components/JsonataResult";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "../components/ui/resizable";
+import { toast } from "sonner";
+import { JsonataEditorHandle } from "../components/JsonataEditor";
 
 const Index = () => {
   const [jsonInput, setJsonInput] = useState<string>(`{
@@ -48,6 +50,11 @@ const Index = () => {
   const [isJsonValid, setIsJsonValid] = useState<boolean>(true);
   const [jsonError, setJsonError] = useState<string>("");
   const [result, setResult] = useState<string>("");
+  const [lastUploadTime, setLastUploadTime] = useState<number | null>(null);
+  const [jsonExpression, setJsonExpression] = useState<string>("$");
+  
+  // Reference to the JSONata editor component
+  const jsonataEditorRef = useRef<JsonataEditorHandle | null>(null);
 
   useEffect(() => {
     if (!jsonInput.trim()) {
@@ -68,7 +75,42 @@ const Index = () => {
 
   const handleResultChange = (newResult: string) => {
     setResult(newResult);
+    
+    // If this was from a file upload, offer to download
+    if (lastUploadTime && Date.now() - lastUploadTime < 1000) {
+      setTimeout(() => {
+        if (document.querySelector('[title="Download result as JSON"]')) {
+          toast.info("Result is ready for download", {
+            action: {
+              label: "Download",
+              onClick: () => {
+                // Find and click the download button
+                const downloadBtn = document.querySelector('[title="Download result as JSON"]') as HTMLButtonElement;
+                if (downloadBtn) downloadBtn.click();
+              }
+            }
+          });
+        }
+      }, 500);
+      
+      // Reset upload time
+      setLastUploadTime(null);
+    }
   };
+
+  // Handle file upload by triggering evaluation
+  const handleJsonInputChange = (newValue: string) => {
+    setJsonInput(newValue);
+    // Set last upload time to trigger evaluation
+    setLastUploadTime(Date.now());
+  };
+
+  // Effect to evaluate expression after file upload
+  useEffect(() => {
+    if (lastUploadTime && isJsonValid && jsonataEditorRef.current) {
+      jsonataEditorRef.current.evaluateExpression();
+    }
+  }, [lastUploadTime, isJsonValid]);
 
   return (
     <div className="flex flex-col h-screen bg-[#282c34]">
@@ -84,7 +126,7 @@ const Index = () => {
             <div className="h-full flex flex-col">
               <JsonInput 
                 value={jsonInput} 
-                onChange={setJsonInput} 
+                onChange={handleJsonInputChange} 
                 isValid={isJsonValid}
                 error={jsonError}
               />
@@ -99,6 +141,7 @@ const Index = () => {
                 <ResizablePanel defaultSize={60} minSize={30}>
                   <div className="h-full">
                     <JsonataEditor 
+                      ref={jsonataEditorRef}
                       jsonInput={jsonInput} 
                       onResultChange={handleResultChange} 
                     />
