@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import JsonInput from "../components/JsonInput";
 import JsonataEditor from "../components/JsonataEditor";
@@ -78,27 +79,33 @@ const Index = () => {
         </div>
       </header>
       
-      <div className="flex-grow overflow-hidden">
-        <ResizablePanelGroup direction="horizontal" className="h-full">
-          <ResizablePanel defaultSize={50} minSize={30} className="h-full">
-            <JsonInput 
-              value={jsonInput} 
-              onChange={setJsonInput} 
-              isValid={isJsonValid}
-              error={jsonError}
-            />
+      <div className="flex-grow overflow-hidden flex flex-col">
+        <ResizablePanelGroup direction="horizontal" className="flex-grow">
+          <ResizablePanel defaultSize={50} minSize={30}>
+            <div className="h-full">
+              <JsonInput 
+                value={jsonInput} 
+                onChange={setJsonInput} 
+                isValid={isJsonValid}
+                error={jsonError}
+              />
+            </div>
           </ResizablePanel>
           
           <ResizableHandle withHandle />
           
-          <ResizablePanel defaultSize={50} minSize={30} className="h-full flex flex-col">
-            <JsonataEditor 
-              jsonInput={jsonInput} 
-              onResultChange={handleResultChange} 
-            />
-            
-            <div className="mt-auto">
-              <JsonataResult result={result} />
+          <ResizablePanel defaultSize={50} minSize={30}>
+            <div className="h-full flex flex-col">
+              <div className="flex-grow">
+                <JsonataEditor 
+                  jsonInput={jsonInput} 
+                  onResultChange={handleResultChange} 
+                />
+              </div>
+              
+              <div>
+                <JsonataResult result={result} />
+              </div>
             </div>
           </ResizablePanel>
         </ResizablePanelGroup>

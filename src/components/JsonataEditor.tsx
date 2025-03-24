@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { ScrollArea } from "./ui/scroll-area";
+import jsonata from "jsonata";
 
 interface JsonataEditorProps {
   jsonInput: string;
@@ -27,7 +28,9 @@ const JsonataEditor: React.FC<JsonataEditorProps> = ({
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
   const [evaluating, setEvaluating] = useState(false);
-
+  const [apiKeyInput, setApiKeyInput] = useState("");
+  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
+  
   // Simple validation to check if the JSON input is valid
   const isJsonValid = () => {
     try {
@@ -39,7 +42,7 @@ const JsonataEditor: React.FC<JsonataEditorProps> = ({
     }
   };
 
-  // Generate JSONata expression using the prompt
+  // Generate JSONata expression using the prompt via OpenAI API
   const generateExpression = async () => {
     if (!prompt.trim()) {
       toast.error("Please enter a prompt");
@@ -51,43 +54,61 @@ const JsonataEditor: React.FC<JsonataEditorProps> = ({
       return;
     }
 
+    // Check if we need to ask for API key
+    if (!localStorage.getItem('openai_api_key') && !apiKeyInput) {
+      setShowApiKeyInput(true);
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     try {
-      // In a real implementation, this would call an API to generate the expression
-      // For now, we'll simulate a response with a simple function
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const apiKey = apiKeyInput || localStorage.getItem('openai_api_key') || '';
       
-      // Simulate different JSONata expressions based on the prompt
-      let expression = "";
-      
-      if (prompt.toLowerCase().includes("extract") || prompt.toLowerCase().includes("get")) {
-        const jsonObj = JSON.parse(jsonInput);
-        const keys = Object.keys(jsonObj);
-        if (keys.length > 0) {
-          // Simple extraction of the first property
-          expression = `$.${keys[0]}`;
-        }
-      } else if (prompt.toLowerCase().includes("count")) {
-        expression = "$count(*)";
-      } else if (prompt.toLowerCase().includes("sum") || prompt.toLowerCase().includes("total")) {
-        expression = "$sum(Account.Order.Product.(Price * Quantity))";
-      } else if (prompt.toLowerCase().includes("transform") || prompt.toLowerCase().includes("map")) {
-        expression = "$map($, function($v) { $v })";
-      } else if (prompt.toLowerCase().includes("filter")) {
-        expression = "$filter($, function($v) { $v.propertyName = 'value' })";
-      } else {
-        expression = "$";  // Default expression to return the entire JSON
+      if (apiKeyInput) {
+        localStorage.setItem('openai_api_key', apiKeyInput);
+        setShowApiKeyInput(false);
       }
+
+      // Call the OpenAI API
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          messages: [
+            {
+              role: "system",
+              content: "You are a JSONata expert. Given a JSON object and a description of what the user wants to extract or transform, provide only a valid JSONata expression that accomplishes this task. Do not include any explanations, just return the JSONata expression."
+            },
+            {
+              role: "user",
+              content: `JSON: ${jsonInput}\n\nTask: ${prompt}\n\nProvide only a valid JSONata expression.`
+            }
+          ],
+          temperature: 0.2
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || 'Failed to generate expression');
+      }
+
+      const data = await response.json();
+      const expression = data.choices[0].message.content.trim();
       
       setJsonataExpression(expression);
       
       // Also evaluate the expression
-      evaluateExpression(expression);
+      await evaluateExpression(expression);
     } catch (err) {
       console.error("Error generating expression:", err);
-      setError("Failed to generate expression. Please try again.");
+      setError(`Failed to generate expression: ${(err as Error).message}`);
     } finally {
       setLoading(false);
     }
@@ -109,48 +130,23 @@ const JsonataEditor: React.FC<JsonataEditorProps> = ({
     setError(null);
 
     try {
-      // In a real implementation, this would use the jsonata library
-      // For now, we'll simulate a response
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const parsedJson = JSON.parse(jsonInput);
+      const expression = jsonata(expr);
       
       try {
-        const jsonObj = JSON.parse(jsonInput);
-        
-        // Simple simulated evaluation for common expressions
-        let resultValue = null;
-        
-        if (expr === "$") {
-          resultValue = jsonObj;
-        } else if (expr.startsWith("$.")) {
-          const path = expr.substring(2);
-          resultValue = jsonObj[path];
-        } else if (expr === "$count(*)") {
-          if (Array.isArray(jsonObj)) {
-            resultValue = jsonObj.length;
-          } else if (typeof jsonObj === 'object' && jsonObj !== null) {
-            resultValue = Object.keys(jsonObj).length;
-          }
-        } else if (expr === "$sum(Account.Order.Product.(Price * Quantity))") {
-          try {
-            // Simulate sum calculation for the specific expression
-            resultValue = 90.57; // Example value
-          } catch (e) {
-            resultValue = "Error evaluating expression";
-          }
-        }
-        
-        const resultString = typeof resultValue === 'number' 
-          ? resultValue.toString()
-          : JSON.stringify(resultValue, null, 2);
+        const resultValue = await expression.evaluate(parsedJson);
+        const resultString = typeof resultValue === 'object' 
+          ? JSON.stringify(resultValue, null, 2)
+          : String(resultValue);
           
         setResult(resultString);
         onResultChange(resultString);
       } catch (e) {
-        setError("Error evaluating expression. Please check your syntax.");
+        setError(`Error evaluating expression: ${(e as Error).message}`);
         console.error("Evaluation error:", e);
       }
     } catch (err) {
-      setError("Failed to evaluate expression. Please try again.");
+      setError(`Failed to evaluate: ${(err as Error).message}`);
       console.error("Error evaluating:", err);
     } finally {
       setEvaluating(false);
@@ -195,28 +191,57 @@ const JsonataEditor: React.FC<JsonataEditorProps> = ({
         </div>
       </div>
 
-      <div className="p-2 bg-[#21252b] border-b border-[#181a1f]">
-        <div className="flex items-center space-x-2">
-          <input
-            type="text"
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Describe what you want to do with your JSON..."
-            className="w-full bg-[#282c34] text-sm text-white rounded px-3 py-1.5 border border-[#181a1f] focus:outline-none focus:border-blue-500"
-          />
-          <button
-            onClick={generateExpression}
-            disabled={loading || !prompt.trim() || !isJsonValid()}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm rounded px-3 py-1.5 transition-colors flex items-center justify-center disabled:opacity-50 disabled:pointer-events-none"
-          >
-            {loading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              "Generate"
-            )}
-          </button>
+      {showApiKeyInput ? (
+        <div className="p-4 bg-[#21252b] border-b border-[#181a1f]">
+          <div className="space-y-2">
+            <label className="text-white text-sm">
+              Enter your OpenAI API key to generate JSONata expressions
+            </label>
+            <div className="flex items-center space-x-2">
+              <input
+                type="password"
+                value={apiKeyInput}
+                onChange={(e) => setApiKeyInput(e.target.value)}
+                placeholder="sk-..."
+                className="w-full bg-[#282c34] text-sm text-white rounded px-3 py-1.5 border border-[#181a1f] focus:outline-none focus:border-blue-500"
+              />
+              <button
+                onClick={generateExpression}
+                disabled={!apiKeyInput.trim()}
+                className="bg-blue-600 hover:bg-blue-700 text-white text-sm rounded px-3 py-1.5 transition-colors flex items-center justify-center disabled:opacity-50 disabled:pointer-events-none"
+              >
+                Save & Generate
+              </button>
+            </div>
+            <p className="text-xs text-gray-400">
+              Your API key is stored only in your browser's localStorage.
+            </p>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="p-2 bg-[#21252b] border-b border-[#181a1f]">
+          <div className="flex items-center space-x-2">
+            <input
+              type="text"
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder="Describe what you want to do with your JSON..."
+              className="w-full bg-[#282c34] text-sm text-white rounded px-3 py-1.5 border border-[#181a1f] focus:outline-none focus:border-blue-500"
+            />
+            <button
+              onClick={generateExpression}
+              disabled={loading || !prompt.trim() || !isJsonValid()}
+              className="bg-blue-600 hover:bg-blue-700 text-white text-sm rounded px-3 py-1.5 transition-colors flex items-center justify-center disabled:opacity-50 disabled:pointer-events-none"
+            >
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "Generate"
+              )}
+            </button>
+          </div>
+        </div>
+      )}
       
       <div className="flex-grow relative">
         <textarea
