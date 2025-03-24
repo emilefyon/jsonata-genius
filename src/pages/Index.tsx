@@ -1,6 +1,4 @@
-
 import React, { useState, useEffect } from "react";
-import Layout from "../components/Layout";
 import JsonInput from "../components/JsonInput";
 import JsonataEditor from "../components/JsonataEditor";
 import JsonataResult from "../components/JsonataResult";
@@ -51,7 +49,6 @@ const Index = () => {
   const [jsonError, setJsonError] = useState<string>("");
   const [result, setResult] = useState<string>("");
 
-  // Validate JSON whenever input changes
   useEffect(() => {
     if (!jsonInput.trim()) {
       setIsJsonValid(false);
@@ -83,7 +80,7 @@ const Index = () => {
       
       <div className="flex-grow overflow-hidden">
         <ResizablePanelGroup direction="horizontal" className="h-full">
-          <ResizablePanel defaultSize={50} minSize={30} className="overflow-auto">
+          <ResizablePanel defaultSize={50} minSize={30} className="h-full">
             <JsonInput 
               value={jsonInput} 
               onChange={setJsonInput} 
@@ -94,7 +91,7 @@ const Index = () => {
           
           <ResizableHandle withHandle />
           
-          <ResizablePanel defaultSize={50} minSize={30} className="flex flex-col">
+          <ResizablePanel defaultSize={50} minSize={30} className="h-full flex flex-col">
             <JsonataEditor 
               jsonInput={jsonInput} 
               onResultChange={handleResultChange} 
