@@ -1,6 +1,7 @@
 
 import React, { useState } from "react";
 import { AlertTriangle, Check } from "lucide-react";
+import { ScrollArea } from "./ui/scroll-area";
 
 interface JsonInputProps {
   value: string;
@@ -22,20 +23,20 @@ const JsonInput: React.FC<JsonInputProps> = ({
   };
 
   return (
-    <div className="glass-panel rounded-xl p-6 transition-all duration-300">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-medium">JSON Input</h2>
+    <div className="flex flex-col h-full">
+      <div className="flex justify-between items-center p-2 bg-[#21252b] text-white border-b border-[#181a1f]">
+        <h2 className="text-sm font-medium">JSON</h2>
         <div className="flex items-center">
           {value && (
-            <div className="flex items-center text-sm">
+            <div className="flex items-center text-xs">
               {isValid ? (
                 <span className="text-green-500 flex items-center">
-                  <Check className="h-4 w-4 mr-1" />
+                  <Check className="h-3 w-3 mr-1" />
                   Valid JSON
                 </span>
               ) : (
-                <span className="text-destructive flex items-center">
-                  <AlertTriangle className="h-4 w-4 mr-1" />
+                <span className="text-red-500 flex items-center">
+                  <AlertTriangle className="h-3 w-3 mr-1" />
                   Invalid JSON
                 </span>
               )}
@@ -44,29 +45,30 @@ const JsonInput: React.FC<JsonInputProps> = ({
         </div>
       </div>
 
-      <div className={`relative transition-all duration-300 ${isFocused ? 'ring-1 ring-primary/30' : ''}`}>
-        <textarea
-          value={value}
-          onChange={handleChange}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          placeholder="Paste your JSON here"
-          className="code-area w-full bg-accent text-accent-foreground"
-          rows={10}
-          spellCheck={false}
-        />
+      <div className="flex-grow relative">
+        <ScrollArea className="h-full">
+          <textarea
+            value={value}
+            onChange={handleChange}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            spellCheck={false}
+            className="w-full h-full bg-[#282c34] text-white font-mono text-sm p-4 resize-none outline-none border-0"
+            style={{ 
+              minHeight: "100%",
+              lineHeight: 1.5,
+              tabSize: 2,
+            }}
+          />
+        </ScrollArea>
       </div>
 
       {error && !isValid && value && (
-        <div className="mt-2 text-destructive text-sm flex items-center">
-          <AlertTriangle className="h-4 w-4 mr-1" />
+        <div className="p-2 text-red-500 text-xs flex items-center bg-[#21252b] border-t border-[#181a1f]">
+          <AlertTriangle className="h-3 w-3 mr-1" />
           {error}
         </div>
       )}
-
-      <div className="mt-4 text-sm text-muted-foreground">
-        Tip: Paste your JSON data here. Make sure it's valid JSON to use with JSONata expressions.
-      </div>
     </div>
   );
 };
