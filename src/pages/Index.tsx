@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import JsonInput from "../components/JsonInput";
 import JsonataEditor from "../components/JsonataEditor";
 import JsonataResult from "../components/JsonataResult";
+import HowItWorksModal from "../components/HowItWorksModal";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "../components/ui/resizable";
 import { toast } from "sonner";
 import { JsonataEditorHandle } from "../components/JsonataEditor";
@@ -117,6 +118,9 @@ const Index = () => {
       <header className="bg-[#21252b] text-white p-2 border-b border-[#181a1f] flex justify-between items-center">
         <div className="flex items-center">
           <span className="text-[#7cb342] text-xl font-semibold ml-2">JSONata Genius</span>
+        </div>
+        <div className="flex items-center">
+          <HowItWorksModal className="text-gray-300 hover:text-white" />
         </div>
       </header>
       
