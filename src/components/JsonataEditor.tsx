@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { 
   Copy, 
   CheckCircle, 
@@ -17,10 +16,14 @@ interface JsonataEditorProps {
   onResultChange: (result: string) => void;
 }
 
-const JsonataEditor: React.FC<JsonataEditorProps> = ({ 
+export interface JsonataEditorHandle {
+  evaluateExpression: () => Promise<void>;
+}
+
+const JsonataEditor = forwardRef<JsonataEditorHandle, JsonataEditorProps>(({ 
   jsonInput, 
   onResultChange 
-}) => {
+}, ref) => {
   const [prompt, setPrompt] = useState("");
   const [jsonataExpression, setJsonataExpression] = useState("");
   const [result, setResult] = useState("");
@@ -131,9 +134,10 @@ const JsonataEditor: React.FC<JsonataEditorProps> = ({
 
   // Evaluate the JSONata expression
   const evaluateExpression = async (expr = jsonataExpression) => {
+    // If no expression but we're evaluating (likely from a file upload), use $ as default
     if (!expr.trim()) {
-      toast.error("Please generate or enter a JSONata expression");
-      return;
+      expr = "$";
+      setJsonataExpression(expr);
     }
 
     if (!isJsonValid()) {
@@ -167,6 +171,11 @@ const JsonataEditor: React.FC<JsonataEditorProps> = ({
       setEvaluating(false);
     }
   };
+
+  // Expose methods via ref
+  useImperativeHandle(ref, () => ({
+    evaluateExpression: () => evaluateExpression()
+  }));
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(jsonataExpression);
@@ -298,6 +307,8 @@ const JsonataEditor: React.FC<JsonataEditorProps> = ({
       )}
     </div>
   );
-};
+});
+
+JsonataEditor.displayName = "JsonataEditor";
 
 export default JsonataEditor;
