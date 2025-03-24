@@ -82,7 +82,7 @@ const Index = () => {
       <div className="flex-grow overflow-hidden flex flex-col">
         <ResizablePanelGroup direction="horizontal" className="flex-grow">
           <ResizablePanel defaultSize={50} minSize={30}>
-            <div className="h-full">
+            <div className="h-full flex flex-col">
               <JsonInput 
                 value={jsonInput} 
                 onChange={setJsonInput} 
