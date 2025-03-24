@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import JsonInput from "../components/JsonInput";
 import JsonataEditor from "../components/JsonataEditor";
@@ -96,16 +95,24 @@ const Index = () => {
           
           <ResizablePanel defaultSize={50} minSize={30}>
             <div className="h-full flex flex-col">
-              <div className="flex-grow">
-                <JsonataEditor 
-                  jsonInput={jsonInput} 
-                  onResultChange={handleResultChange} 
-                />
-              </div>
-              
-              <div>
-                <JsonataResult result={result} />
-              </div>
+              <ResizablePanelGroup direction="vertical" className="h-full">
+                <ResizablePanel defaultSize={60} minSize={30}>
+                  <div className="h-full">
+                    <JsonataEditor 
+                      jsonInput={jsonInput} 
+                      onResultChange={handleResultChange} 
+                    />
+                  </div>
+                </ResizablePanel>
+                
+                <ResizableHandle withHandle />
+                
+                <ResizablePanel defaultSize={40} minSize={20}>
+                  <div className="h-full">
+                    <JsonataResult result={result} />
+                  </div>
+                </ResizablePanel>
+              </ResizablePanelGroup>
             </div>
           </ResizablePanel>
         </ResizablePanelGroup>

@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Copy, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -34,7 +33,7 @@ const JsonataResult: React.FC<JsonataResultProps> = ({ result }) => {
   };
 
   return (
-    <div className="border-t border-[#181a1f]">
+    <div className="h-full flex flex-col border-t border-[#181a1f]">
       <div className="flex justify-between items-center p-2 bg-[#21252b] text-white">
         <h2 className="text-sm font-medium">Result</h2>
         <button
@@ -47,7 +46,7 @@ const JsonataResult: React.FC<JsonataResultProps> = ({ result }) => {
         </button>
       </div>
 
-      <ScrollArea orientation="both" className="h-[150px]">
+      <ScrollArea orientation="both" className="flex-grow">
         <div className="bg-[#282c34] p-4 h-full min-w-max">
           {result ? (
             <pre className={`font-mono text-sm ${isSimpleValue() ? 'text-amber-400' : 'text-white'}`}>
