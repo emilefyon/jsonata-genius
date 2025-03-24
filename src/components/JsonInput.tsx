@@ -47,7 +47,7 @@ const JsonInput: React.FC<JsonInputProps> = ({
 
       <div className="flex-grow relative">
         <ScrollArea orientation="both" className="h-full">
-          <div className="min-w-max">
+          <div className="min-w-max h-full">
             <textarea
               value={value}
               onChange={handleChange}
@@ -56,6 +56,7 @@ const JsonInput: React.FC<JsonInputProps> = ({
               spellCheck={false}
               className="w-full h-full bg-[#282c34] text-white font-mono text-sm p-4 resize-none outline-none border-0"
               style={{ 
+                height: "100%",
                 minHeight: "100%",
                 lineHeight: 1.5,
                 tabSize: 2,
